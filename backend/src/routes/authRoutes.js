@@ -8,7 +8,6 @@ dotenv.config();
 const router = express.Router();
 console.log("✅ authRoutes.js loaded");
 
-
 // REGISTER (Sign Up)
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
@@ -23,15 +22,12 @@ router.post("/register", async (req, res) => {
     );
 
     console.log("✅ User Registered:", result.rows[0]);
-
     res.json({ msg: "User registered ✅", userId: result.rows[0].id });
-
   } catch (err) {
     console.log("❌ Registration Error:", err);
     res.status(400).json({ msg: "Registration failed ❌. Email might already exist." });
   }
 });
-
 
 // LOGIN
 router.post("/login", async (req, res) => {
@@ -40,7 +36,6 @@ router.post("/login", async (req, res) => {
 
   try {
     const result = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
-    
     console.log("🔍 DB Query Result:", result.rows);
 
     if (result.rows.length === 0) {
@@ -60,20 +55,19 @@ router.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-  { id: user.id, role: user.role },  // ✅ include role here
-  process.env.JWT_SECRET,
-  { expiresIn: "7d" }
-);
+      { id: user.id,email:user.email, role: user.role }, // ✅ include role here
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     console.log("✅ Login Successful, Token generated");
-
     res.json({ msg: "Login successful ✅", token });
-
   } catch (err) {
     console.log("🔥 Login Error:", err);
     res.status(500).json({ msg: "Server error ❌" });
   }
 });
+
 // ✅ Verify Token Middleware
 const verifyToken = (req, res, next) => {
   const header = req.headers["authorization"];
@@ -93,5 +87,9 @@ router.get("/protected", verifyToken, (req, res) => {
   res.json({ msg: "Authorized ✅", user: req.user });
 });
 
+// ✅ Test Route
+router.get("/test", (req, res) => {
+  res.send("Auth route working ✅");
+});
 
 export default router;

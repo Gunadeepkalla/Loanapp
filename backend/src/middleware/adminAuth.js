@@ -1,18 +1,21 @@
+// backend/src/middleware/adminAuth.js
 import jwt from "jsonwebtoken";
-
 export default function adminAuth(req, res, next) {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ msg: "No token ❌" });
+    // Check if user info is available (set by verifyToken middleware)
+    if (!req.user) {
+      return res.status(401).json({ msg: "Unauthorized: No user found ❌" });
+    }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Allow only admins
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ msg: "Access denied: Admins only ❌" });
+    }
 
-    if (!decoded.is_admin)
-      return res.status(403).json({ msg: "Access denied ❌ Not admin" });
-
-    req.user = decoded;
+    // Continue to the next middleware or route
     next();
-  } catch (err) {
-    res.status(401).json({ msg: "Invalid token ❌" });
+  } catch (error) {
+    console.error("Admin auth error:", error.message);
+    res.status(500).json({ msg: "Server error in adminAuth.js ❌" });
   }
 }

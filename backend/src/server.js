@@ -3,14 +3,21 @@ import pool from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import auth from "./middleware/auth.js";
 import loanRoutes from "./routes/loanRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import adminAuth from "./middleware/adminAuth.js";
 const app = express();
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/loans", loanRoutes);
+app.use("/api/admin", adminRoutes);
 app.get("/protected", auth, (req, res) => {
   res.json({ msg: "Protected route access ✅", user: req.user });
 });
+app.get("/api/admin/test",(req, res) => {
+  res.send("Admin test route working ✅");
+});
+
 
 app.get("/", (req, res) => {
   res.send("Loan API working ✅");
