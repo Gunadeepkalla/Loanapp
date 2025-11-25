@@ -1,5 +1,3 @@
-// backend/src/routes/adminRoutes.js
-
 import express from "express";
 import pool from "../config/db.js";
 import verifyToken from "../middleware/auth.js";   // This checks token & sets req.user

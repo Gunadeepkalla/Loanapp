@@ -1,0 +1,85 @@
+/* Full page center */
+.login-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f4f7fb;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Company Title */
+.company-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a237e;
+  margin-bottom: 25px;
+}
+
+/* Login Card */
+.login-card {
+  width: 350px;
+  background: #ffffff;
+  padding: 25px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+}
+
+.login-heading {
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: block;
+  color: #555;
+}
+
+input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 18px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s;
+}
+
+input:focus {
+  border-color: #1a237e;
+}
+
+/* Button */
+button {
+  width: 100%;
+  padding: 12px;
+  background: #1a237e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #303f9f;
+}
+
+/* Message output */
+.msg {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #d32f2f;
+}
