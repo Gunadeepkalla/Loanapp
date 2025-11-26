@@ -1,85 +1,98 @@
-/* Full page center */
-.login-container {
+/* Full page container */
+.login-page {
   height: 100vh;
+  width: 100vw;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  background: #f4f7fb;
-  font-family: "Poppins", sans-serif;
+  align-items: center;
+  background: linear-gradient(to right, #eef2f7 100%);
 }
 
-/* Company Title */
+/* Center Card */
+.login-container {
+  width: 90%;
+  max-width: 380px;
+  background: white;
+  padding: 30px 25px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0px 10px 30px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+/* Title */
 .company-title {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 32px;
   font-weight: 700;
-  color: #1a237e;
-  margin-bottom: 25px;
+  color: #002d84;
+  white-space: nowrap;
 }
 
-/* Login Card */
-.login-card {
-  width: 350px;
-  background: #ffffff;
-  padding: 25px 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
-}
-
-.login-heading {
-  font-size: 22px;
-  font-weight: 600;
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-}
-
-label {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 6px;
-  display: block;
-  color: #555;
-}
-
-input {
+/* Inputs */
+.login-form input {
   width: 100%;
-  padding: 10px 12px;
-  margin-bottom: 18px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 14px;
+  margin-top: 12px;
+  border-radius: 10px;
+  border: 1px solid #c7c7c7;
+  font-size: 16px;
   outline: none;
-  transition: 0.2s;
+  transition: 0.2s ease;
+  color: black;
 }
 
-input:focus {
-  border-color: #1a237e;
+.login-form input:focus {
+  border-color: #002d84;
 }
 
 /* Button */
-button {
+.login-btn {
   width: 100%;
-  padding: 12px;
-  background: #1a237e;
+  padding: 14px;
+  margin-top: 18px;
+  background: black;
   color: white;
+  font-size: 18px;
   border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  border-radius: 10px;
   cursor: pointer;
-  transition: 0.2s;
+  transition: 0.3s;
 }
 
-button:hover {
-  background: #303f9f;
+.login-btn:hover {
+  background: #333;
 }
 
-/* Message output */
-.msg {
-  text-align: center;
+/* Register text */
+.register-text {
   margin-top: 15px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #d32f2f;
+  color: #333;
+  font-size: 15px;
+}
+
+.register-link {
+  color: #002d84;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ---------- Mobile Responsive ---------- */
+@media (max-width: 768px) {
+  .login-page {
+    background: #eef2f7;
+  }
+
+  .company-title {
+    top: -80px;
+    font-size: 28px;
+  }
+
+  .login-container {
+    padding: 25px 20px;
+    width: 90%;
+  }
 }
