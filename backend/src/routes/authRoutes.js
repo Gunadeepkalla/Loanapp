@@ -17,7 +17,7 @@ router.post("/register", async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id",
+      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, role",
       [name, email, hashed]
     );
 
@@ -54,21 +54,25 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ msg: "Wrong password ❌" });
     }
 
+    // token contains role
     const token = jwt.sign(
-      { id: user.id,email:user.email, role: user.role }, // ✅ include role here
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
     console.log("✅ Login Successful, Token generated");
-    res.json({ msg: "Login successful ✅", token });
+    res.json({
+      msg: "Login successful ✅",
+      token,
+    });
   } catch (err) {
     console.log("🔥 Login Error:", err);
     res.status(500).json({ msg: "Server error ❌" });
   }
 });
 
-// ✅ Verify Token Middleware
+// VERIFY TOKEN MIDDLEWARE
 const verifyToken = (req, res, next) => {
   const header = req.headers["authorization"];
   if (!header) return res.status(401).json({ msg: "No token provided ❌" });
@@ -82,12 +86,31 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-// ✅ Protected Route
+// ⭐ GET LOGGED IN USER INFO (IMPORTANT)
+router.get("/me", verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, name, email, role FROM users WHERE id = $1",
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ msg: "User not found ❌" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("🔥 /me Error:", err);
+    res.status(500).json({ msg: "Server error ❌" });
+  }
+});
+
+// PROTECTED
 router.get("/protected", verifyToken, (req, res) => {
   res.json({ msg: "Authorized ✅", user: req.user });
 });
 
-// ✅ Test Route
+// TEST ROUTE
 router.get("/test", (req, res) => {
   res.send("Auth route working ✅");
 });

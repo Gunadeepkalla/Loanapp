@@ -5,25 +5,47 @@ import auth from "./middleware/auth.js";
 import loanRoutes from "./routes/loanRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import adminAuth from "./middleware/adminAuth.js";
+import cors from "cors";
+import path from "path";
+
 const app = express();
 app.use(express.json());
 
+// ⭐ Enable CORS for frontend (React at http://localhost:5173)
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
+// ⭐ Serve uploaded files (Aadhaar, PAN, Salary Slip, etc.)
+app.use("/uploads", express.static("uploads"));
+
+// ⭐ API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/loans", loanRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/uploads", express.static("uploads"));
+
+
+// Test authenticated route
 app.get("/protected", auth, (req, res) => {
   res.json({ msg: "Protected route access ✅", user: req.user });
 });
-app.get("/api/admin/test",(req, res) => {
+
+// Admin test route
+app.get("/api/admin/test", (req, res) => {
   res.send("Admin test route working ✅");
 });
 
-
+// Root endpoint
 app.get("/", (req, res) => {
   res.send("Loan API working ✅");
 });
 
-// DB test route
+// ⭐ Database test route
 app.get("/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
