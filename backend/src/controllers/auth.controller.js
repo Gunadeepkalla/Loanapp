@@ -1,5 +1,5 @@
 import pool from "../config/db.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export const registerUser = async (req, res) => {
@@ -40,7 +40,7 @@ export const loginUser = async (req, res) => {
 
         const token = jwt.sign(
             { id: user.rows[0].id, email },
-            "your_secret_key",
+            process.env.JWT_SECRET,
             { expiresIn: "1d" }
         );
 

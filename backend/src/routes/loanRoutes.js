@@ -186,4 +186,21 @@ router.get("/my-applications", authMiddleware, async (req, res) => {
   }
 });
 
+// ✅ Get logged-in user's loan applications
+router.get("/my", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const result = await pool.query(
+      "SELECT * FROM loans WHERE user_id = $1 ORDER BY created_at DESC",
+      [userId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching user loans:", err.message);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
 export default router;
