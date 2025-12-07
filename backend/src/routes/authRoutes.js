@@ -114,5 +114,66 @@ router.get("/protected", verifyToken, (req, res) => {
 router.get("/test", (req, res) => {
   res.send("Auth route working ✅");
 });
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const result = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ msg: "Email not found ❌" });
+    }
+
+    const userId = result.rows[0].id;
+
+    // create reset token
+    const resetToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+      expiresIn: "15m",
+    });
+
+    // store in database (create column reset_token)
+    await pool.query(
+      "UPDATE users SET reset_token = $1 WHERE id = $2",
+      [resetToken, userId]
+    );
+
+    // send reset link
+    const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+
+    res.json({
+      msg: "Reset link generated",
+      resetLink,
+    });
+  } catch (err) {
+    console.error("🔥 Forgot Password Error:", err);
+    res.status(500).json({ msg: "Server error ❌" });
+  }
+});
+
+// ⭐ 2️⃣ RESET PASSWORD (Update password)
+router.post("/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    // verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    const result = await pool.query(
+      "UPDATE users SET password = $1, reset_token = NULL WHERE id = $2 AND reset_token = $3",
+      [hashed, decoded.id, token]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(400).json({ msg: "Invalid or expired token ❌" });
+    }
+
+    res.json({ msg: "Password reset successful ✅" });
+  } catch (err) {
+    console.error("🔥 Reset Password Error:", err);
+    res.status(500).json({ msg: "Invalid or expired token ❌" });
+  }
+});
 
 export default router;
