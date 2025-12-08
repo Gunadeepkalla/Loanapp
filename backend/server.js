@@ -1,13 +1,14 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import path from "path";
-import pool from "./config/db.js";
-import authRoutes from "./routes/authRoutes.js";
-import auth from "./middleware/auth.js";
-import loanRoutes from "./routes/loanRoutes.js";
-import adminRoutes from "./routes/adminRoutes.js";
-import adminAuth from "./middleware/adminAuth.js";
-
+import pool from "./src/config/db.js";
+import authRoutes from "./src/routes/authRoutes.js";
+import auth from "./src/middleware/auth.js";
+import loanRoutes from "./src/routes/loanRoutes.js";
+import adminRoutes from "./src/routes/adminRoutes.js";
+import adminAuth from "./src/middleware/adminAuth.js";
 const app = express();
 
 // ⭐ Global CORS middleware

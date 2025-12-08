@@ -242,7 +242,7 @@ const Login = () => {
                 />
                 {isNewUser && (
                   <p className="mt-1 text-xs text-gray-500">
-                    Use 8 or more characters with a mix of letters, numbers & symbols
+                    Use 6 or more characters with a mix of letters, numbers & symbols
                   </p>
                 )}
               </div>
@@ -273,6 +273,14 @@ const Login = () => {
                     </svg>
                     <span className="text-sm text-red-700">{error}</span>
                   </div>
+                </div>
+              )}
+                {/* Admin dashboard restriction note */}
+              {!isNewUser && (
+                <div className="mt-2 mb-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                  <p className="text-xs text-blue-700 text-center">
+                    <span className="font-medium">Note:</span> Admin dashboard access is restricted to authorized personnel only.
+                  </p>
                 </div>
               )}
 
