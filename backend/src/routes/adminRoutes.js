@@ -6,11 +6,38 @@ import { sendEmail } from "../config/email.js";
 
 const router = express.Router();
 
-// Debug log to confirm file is loaded
+// Debug log
 console.log("🔥 adminRoutes.js loaded successfully!");
 
+// BASE URL for generating full document links
+const BASE_URL = process.env.BASE_URL || "https://loanapp-lu02.onrender.com";
+
+// Helper to convert file names → full URLs
+const buildDocumentURLs = (documents, aadhaar, pan) => {
+  let finalDocs = {};
+
+  // Convert documents JSON (stored as string) to object
+  if (documents) {
+    const parsedDocs =
+      typeof documents === "string" ? JSON.parse(documents) : documents;
+
+    for (let key in parsedDocs) {
+      finalDocs[key] = parsedDocs[key]
+        ? `${BASE_URL}/uploads/${parsedDocs[key]}`
+        : null;
+    }
+  }
+
+  // Also attach aadhaar & pan columns if available
+  return {
+    ...finalDocs,
+    aadhaar: aadhaar ? `${BASE_URL}/uploads/${aadhaar}` : finalDocs.aadhaar || null,
+    pan: pan ? `${BASE_URL}/uploads/${pan}` : finalDocs.pan || null,
+  };
+};
+
 /* --------------------------------------------------------------
-   1️⃣ GET ALL ADVANCED LOAN APPLICATIONS (loan_applications table)
+   1️⃣ GET ALL ADVANCED LOAN APPLICATIONS
 -------------------------------------------------------------- */
 router.get("/applications", verifyToken, adminAuth, async (req, res) => {
   try {
@@ -18,9 +45,15 @@ router.get("/applications", verifyToken, adminAuth, async (req, res) => {
       "SELECT * FROM loan_applications ORDER BY id DESC"
     );
 
+    // Add full URLs to every application
+    const updatedRows = result.rows.map((app) => ({
+      ...app,
+      documents: buildDocumentURLs(app.documents, app.aadhaar, app.pan),
+    }));
+
     res.json({
       success: true,
-      applications: result.rows,
+      applications: updatedRows,
     });
 
   } catch (err) {
@@ -45,9 +78,13 @@ router.get("/applications/:id", verifyToken, adminAuth, async (req, res) => {
       return res.status(404).json({ msg: "Application not found" });
     }
 
+    const app = result.rows[0];
+
+    app.documents = buildDocumentURLs(app.documents, app.aadhaar, app.pan);
+
     res.json({
       success: true,
-      application: result.rows[0],
+      application: app,
     });
 
   } catch (err) {
@@ -87,7 +124,7 @@ router.put("/applications/:id", verifyToken, adminAuth, async (req, res) => {
 
     const userEmail = userRes.rows[0].email;
 
-    // Send Approval/Rejection email
+    // Send email
     await sendEmail(
       userEmail,
       `Loan Application ${status.toUpperCase()}`,
@@ -107,7 +144,7 @@ router.put("/applications/:id", verifyToken, adminAuth, async (req, res) => {
 });
 
 /* --------------------------------------------------------------
-   4️⃣ OLD SIMPLE LOANS SYSTEM (kept for compatibility)
+   4️⃣ OLD SIMPLE LOANS SYSTEM
 -------------------------------------------------------------- */
 router.get("/loans", verifyToken, adminAuth, async (req, res) => {
   try {

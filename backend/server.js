@@ -4,6 +4,7 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import path from "path";
+import fs from "fs";                     // ⭐ Added for file upload fix
 import { fileURLToPath } from "url";
 import pool from "./src/config/db.js";
 
@@ -16,33 +17,44 @@ import adminAuth from "./src/middleware/adminAuth.js";
 const app = express();
 
 /* ------------------------------
-   ⭐ FIX: Absolute path required for Render
+   ⭐ Absolute path setup (Render required)
 --------------------------------*/
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /* ------------------------------
-   ⭐ FIX: CORS for local + deployed frontend
+   ⭐ FIX: Auto-create uploads folder on Render
+--------------------------------*/
+const uploadPath = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+  console.log("📁 uploads folder created on Render");
+} else {
+  console.log("📁 uploads folder already exists");
+}
+
+/* ------------------------------
+   ⭐ Serve uploaded files
+--------------------------------*/
+app.use("/uploads", express.static(uploadPath));
+
+/* ------------------------------
+   ⭐ CORS for local + production
 --------------------------------*/
 app.use(
   cors({
-    origin: "*", // safe for deployment + testing
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
 /* ------------------------------
-   ⭐ FIX: JSON + form size limit (important for image uploads)
+   ⭐ JSON + URL decoder limits
 --------------------------------*/
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
-
-/* ------------------------------
-   ⭐ FIX: Serve uploaded files using absolute path
-   (Relative path breaks on Render)
---------------------------------*/
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 /* ------------------------------
    ⭐ API ROUTES
@@ -52,7 +64,7 @@ app.use("/api/loans", loanRoutes);
 app.use("/api/admin", adminRoutes);
 
 /* ------------------------------
-   ⭐ Test protected route
+   ⭐ Protected test route
 --------------------------------*/
 app.get("/protected", auth, (req, res) => {
   res.json({ msg: "Protected route access ✅", user: req.user });
@@ -89,7 +101,7 @@ app.get("/test-db", async (req, res) => {
 });
 
 /* ------------------------------
-   ⭐ FIX: Correct port handling for Render
+   ⭐ Correct port handling for Render
 --------------------------------*/
 const PORT = process.env.PORT || 5000;
 
