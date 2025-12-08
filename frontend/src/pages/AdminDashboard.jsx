@@ -184,14 +184,13 @@ const AdminDashboard = () => {
     const docsArray = Object.entries(appDocuments)
       .filter(([key, value]) => value !== null && value !== undefined && value !== '')
       .map(([key, value]) => {
-        const filename = typeof value === 'string' ? value : 'document';
-        return {
-          name: key.replace(/_/g, ' ').toUpperCase(),
-          filename: filename,
-          url: `http://localhost:5000/uploads/${filename}`
-        };
-      });
-    
+  const fileUrl = value; // Already full URL from backend
+  return {
+    name: key.replace(/_/g, ' ').toUpperCase(),
+    filename: fileUrl.split('/').pop(), // just for UI display
+    url: fileUrl // use URL directly
+  };
+});
     console.log('Processed documents array:', docsArray);
     
     setDocuments(docsArray);

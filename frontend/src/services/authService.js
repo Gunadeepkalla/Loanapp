@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL + '/api';
+
 
 const api = axios.create({
   baseURL: API_URL,
@@ -185,20 +186,14 @@ applyForLoan: async (loanData, files = {}) => {
 
   // Get specific loan details
   getLoanDetails: async (loanId) => {
-    try {
-      // First get all loans and filter
-      const loansData = await authService.getUserLoans();
-      const loan = loansData.applications?.find(app => app.id == loanId);
-      
-      if (!loan) {
-        throw new Error('Loan not found');
-      }
-      
-      return { success: true, loan };
-    } catch (error) {
-      throw error.response?.data || { msg: 'Failed to fetch loan details' };
-    }
-  },
+  try {
+    const response = await api.get(`/loans/application/${loanId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { msg: 'Failed to fetch loan details' };
+  }
+},
+
 
   // ============= ADMIN FUNCTIONS =============
   

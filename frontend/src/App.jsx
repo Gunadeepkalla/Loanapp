@@ -1,11 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
-import UserDashboard from './pages/UserDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import UserLoans from './pages/UserLoans';
-import ApplyLoan from './pages/ApplyLoan';
-import LoanDetails from './pages/LoanDetails';
-import PaymentGateway from './pages/PaymentGateway'; // Add this import
+import Login from './pages/login.jsx';
+import UserDashboard from './pages/UserDashboard.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import UserLoans from './pages/UserLoans.jsx';
+import ApplyLoan from './pages/ApplyLoan.jsx';
+import LoanDetails from './pages/LoanDetails.jsx';
+import PaymentGateway from './pages/PaymentGateway.jsx'; // Add this import
 import './App.css';
 
 function App() {
