@@ -206,7 +206,7 @@ const UserDashboard = () => {
                   Dashboard
                 </button>
                 <button 
-                  onClick={() => navigate('/user/apply-loan')}
+                  onClick={() => navigate('/user/loans')}
                   className="text-sm text-gray-600 hover:text-gray-900 font-medium hover:bg-gray-100 px-3 py-1 rounded-lg transition-colors"
                 >
                   Apply Loan
@@ -215,7 +215,7 @@ const UserDashboard = () => {
               
               {/* New Application Button - Hidden on small mobile */}
               <button
-                onClick={() => navigate('/user/apply-loan')}
+                onClick={() => navigate('/user/loans')}
                 className="hidden sm:inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 font-medium shadow-sm shadow-blue-200 transition-all"
               >
                 <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,7 +279,7 @@ const UserDashboard = () => {
           </button>
           
           <button
-            onClick={() => navigate('/user/apply-loan')}
+            onClick={() => navigate('/user/loans')}
             className="flex flex-col items-center p-2 flex-1"
           >
             <div className="relative">
@@ -468,7 +468,7 @@ const UserDashboard = () => {
                     Details
                   </button>
                   <button 
-                    onClick={() => navigate('/user/apply-loan')}
+                    onClick={() => navigate('/user/loans')}
                     className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 font-medium flex items-center"
                   >
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -494,7 +494,7 @@ const UserDashboard = () => {
               
               <div className="space-y-3 sm:space-y-4">
                 <button 
-                  onClick={() => navigate('/user/apply-loan')}
+                  onClick={() => navigate('/user/loans')}
                   className="w-full py-2 sm:py-3 bg-white/10 hover:bg-white/20 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center justify-center"
                 >
                   <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -544,7 +544,7 @@ const UserDashboard = () => {
               <p className="text-gray-900 font-medium mb-1 sm:mb-2 text-sm sm:text-base">No applications yet</p>
               <p className="text-gray-600 mb-4 sm:mb-6 text-xs sm:text-sm">Start your financial journey today</p>
               <button
-                onClick={() => navigate('/user/apply-loan')}
+                onClick={() => navigate('/user/loans')}
                 className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm transition-colors text-xs sm:text-sm"
               >
                 <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
