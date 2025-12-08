@@ -13,27 +13,46 @@ console.log("🔥 adminRoutes.js loaded successfully!");
 const BASE_URL = process.env.BASE_URL || "https://loanapp-lu02.onrender.com";
 
 // Helper to convert file names → full URLs
+// Helper to convert file names → full URLs (SAFE: Prevents double URLs)
 const buildDocumentURLs = (documents, aadhaar, pan) => {
-  let finalDocs = {};
+  const finalDocs = {};
 
-  // Convert documents JSON (stored as string) to object
   if (documents) {
     const parsedDocs =
       typeof documents === "string" ? JSON.parse(documents) : documents;
 
     for (let key in parsedDocs) {
-      finalDocs[key] = parsedDocs[key]
-        ? `${BASE_URL}/uploads/${parsedDocs[key]}`
-        : null;
+      const val = parsedDocs[key];
+
+      if (!val) {
+        finalDocs[key] = null;
+        continue;
+      }
+
+      // 🔥 FIX: If value is already a full URL, DON'T add BASE_URL again
+      if (val.startsWith("http")) {
+        finalDocs[key] = val;
+      } else {
+        finalDocs[key] = `${BASE_URL}/uploads/${val}`;
+      }
     }
   }
 
-  // Also attach aadhaar & pan columns if available
-  return {
-    ...finalDocs,
-    aadhaar: aadhaar ? `${BASE_URL}/uploads/${aadhaar}` : finalDocs.aadhaar || null,
-    pan: pan ? `${BASE_URL}/uploads/${pan}` : finalDocs.pan || null,
-  };
+  // Aadhaar safe fix
+  if (aadhaar) {
+    finalDocs.aadhaar = aadhaar.startsWith("http")
+      ? aadhaar
+      : `${BASE_URL}/uploads/${aadhaar}`;
+  }
+
+  // PAN safe fix
+  if (pan) {
+    finalDocs.pan = pan.startsWith("http")
+      ? pan
+      : `${BASE_URL}/uploads/${pan}`;
+  }
+
+  return finalDocs;
 };
 
 /* --------------------------------------------------------------
