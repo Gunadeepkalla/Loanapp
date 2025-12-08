@@ -9,12 +9,16 @@ import auth from "./src/middleware/auth.js";
 import loanRoutes from "./src/routes/loanRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import adminAuth from "./src/middleware/adminAuth.js";
+
 const app = express();
 
-// ⭐ Global CORS middleware
+/* ⭐ UPDATED CORS for Render + Local */
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173", 
+      "https://your-frontend-url.vercel.app"   // <-- Replace after deployment
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -22,30 +26,30 @@ app.use(
 
 app.use(express.json());
 
-// ⭐ Serve uploaded files (Aadhaar, PAN, Salary Slip, etc.)
+/* ⭐ Serve uploaded files */
 app.use("/uploads", express.static("uploads"));
 
-// ⭐ API Routes
+/* ⭐ API Routes */
 app.use("/api/auth", authRoutes);
 app.use("/api/loans", loanRoutes);
 app.use("/api/admin", adminRoutes);
 
-// Protected route test
+/* ⭐ Protected route test */
 app.get("/protected", auth, (req, res) => {
   res.json({ msg: "Protected route access ✅", user: req.user });
 });
 
-// Admin test route
+/* ⭐ Admin test route */
 app.get("/api/admin/test", (req, res) => {
   res.send("Admin test route working ✅");
 });
 
-// Root endpoint
+/* ⭐ Root endpoint */
 app.get("/", (req, res) => {
   res.send("Loan API working ✅");
 });
 
-// ⭐ Database test route
+/* ⭐ Database test route */
 app.get("/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -56,7 +60,9 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-// Start server
-app.listen(5000, () => {
-  console.log("✅ Server running on http://localhost:5000");
+/* ⭐ UPDATED: Start server (important for Render deployment) */
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
