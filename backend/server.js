@@ -1,9 +1,12 @@
 import dotenv from "dotenv";
 dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import path from "path";
+import { fileURLToPath } from "url";
 import pool from "./src/config/db.js";
+
 import authRoutes from "./src/routes/authRoutes.js";
 import auth from "./src/middleware/auth.js";
 import loanRoutes from "./src/routes/loanRoutes.js";
@@ -12,57 +15,84 @@ import adminAuth from "./src/middleware/adminAuth.js";
 
 const app = express();
 
-/* ⭐ UPDATED CORS for Render + Local */
+/* ------------------------------
+   ⭐ FIX: Absolute path required for Render
+--------------------------------*/
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/* ------------------------------
+   ⭐ FIX: CORS for local + deployed frontend
+--------------------------------*/
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173", 
-      "https://your-frontend-url.vercel.app"   // <-- Replace after deployment
-    ],
+    origin: "*", // safe for deployment + testing
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
-app.use(express.json());
+/* ------------------------------
+   ⭐ FIX: JSON + form size limit (important for image uploads)
+--------------------------------*/
+app.use(express.json({ limit: "20mb" }));
+app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
-/* ⭐ Serve uploaded files */
-app.use("/uploads", express.static("uploads"));
+/* ------------------------------
+   ⭐ FIX: Serve uploaded files using absolute path
+   (Relative path breaks on Render)
+--------------------------------*/
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-/* ⭐ API Routes */
+/* ------------------------------
+   ⭐ API ROUTES
+--------------------------------*/
 app.use("/api/auth", authRoutes);
 app.use("/api/loans", loanRoutes);
 app.use("/api/admin", adminRoutes);
 
-/* ⭐ Protected route test */
+/* ------------------------------
+   ⭐ Test protected route
+--------------------------------*/
 app.get("/protected", auth, (req, res) => {
   res.json({ msg: "Protected route access ✅", user: req.user });
 });
 
-/* ⭐ Admin test route */
+/* ------------------------------
+   ⭐ Admin test route
+--------------------------------*/
 app.get("/api/admin/test", (req, res) => {
   res.send("Admin test route working ✅");
 });
 
-/* ⭐ Root endpoint */
+/* ------------------------------
+   ⭐ Root endpoint
+--------------------------------*/
 app.get("/", (req, res) => {
-  res.send("Loan API working ✅");
+  res.send("Loan API working 🟢");
 });
 
-/* ⭐ Database test route */
+/* ------------------------------
+   ⭐ DB test route
+--------------------------------*/
 app.get("/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
-    res.json({ msg: "DB Connected ✅", time: result.rows[0] });
+    res.json({
+      msg: "DB Connected 🟢",
+      time: result.rows[0],
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "DB Connection Failed ❌" });
   }
 });
 
-/* ⭐ UPDATED: Start server (important for Render deployment) */
+/* ------------------------------
+   ⭐ FIX: Correct port handling for Render
+--------------------------------*/
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`🚀 Server running on PORT: ${PORT}`);
 });
