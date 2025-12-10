@@ -99,7 +99,7 @@ const Login = () => {
   //   setTimeout(() => {
   //     if (isNewUser) {
   //       console.log("Signing up with:", { firstName, lastName, email, phone, password });
-  //       alert('Account created successfully! Welcome to Vasu Consultancy.');
+  //       alert('Account created successfully! Welcome to VASU Consultancy.');
   //     } else {
   //       console.log("Signing in with:", { email, password });
         
@@ -135,7 +135,7 @@ const Login = () => {
           <p className="text-gray-600">Professional Financial Management Platform</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
+        <div className="grid lg:grid-cols-2 gap-12">  
           {/* Left Column - Form (Smaller size) */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             {/* Toggle - Clean Google-style */}
@@ -323,14 +323,14 @@ const Login = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-medium text-gray-900 mb-2">
-                  Why Choose Vasu Consultancy?
+                  Why Choose Our Vasu Consultancy?
                 </h3>
                 <p className="text-gray-600">
                   Join thousands managing their loans efficiently
                 </p>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-6">  
                 <div className="flex items-start">
                   <div className="flex-shrink-0 mt-1">
                     <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
@@ -405,7 +405,7 @@ const Login = () => {
         {/* Footer */}
         <div className="mt-12 pt-8 border-t border-gray-200 text-center">
           <p className="text-gray-500 text-sm">
-            © 2024 Vasu Consultancy. All rights reserved.
+            © 2025 Vasu Consultancy. All rights reserved.
           </p>
           <div className="mt-2">
             <a href="#" className="text-sm text-gray-600 hover:text-gray-900 mx-3">
