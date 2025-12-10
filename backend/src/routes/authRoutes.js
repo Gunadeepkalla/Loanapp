@@ -17,8 +17,8 @@ router.post("/register", async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, role",
-      [name, email, hashed]
+      "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, role",
+      [name, email, hashed, "user"]   // ⭐ default role added for safety
     );
 
     console.log("✅ User Registered:", result.rows[0]);
@@ -32,7 +32,7 @@ router.post("/register", async (req, res) => {
 // LOGIN
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  console.log("📩 Login Request:", email, password);
+  console.log("📩 Login Request:", email);
 
   try {
     const result = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
@@ -54,9 +54,13 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ msg: "Wrong password ❌" });
     }
 
-    // token contains role
+    // ⭐ FIX VERIFIED: email included in token (important for email sending)
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { 
+        id: user.id, 
+        email: user.email, 
+        role: user.role || "user"  // ⭐ prevents null/undefined 
+      },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -86,7 +90,7 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-// ⭐ GET LOGGED IN USER INFO (IMPORTANT)
+// GET LOGGED-IN USER INFO
 router.get("/me", verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
@@ -105,7 +109,7 @@ router.get("/me", verifyToken, async (req, res) => {
   }
 });
 
-// PROTECTED
+// PROTECTED ROUTE
 router.get("/protected", verifyToken, (req, res) => {
   res.json({ msg: "Authorized ✅", user: req.user });
 });
@@ -114,6 +118,8 @@ router.get("/protected", verifyToken, (req, res) => {
 router.get("/test", (req, res) => {
   res.send("Auth route working ✅");
 });
+
+// FORGOT PASSWORD
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
 
@@ -126,18 +132,15 @@ router.post("/forgot-password", async (req, res) => {
 
     const userId = result.rows[0].id;
 
-    // create reset token
     const resetToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
       expiresIn: "15m",
     });
 
-    // store in database (create column reset_token)
     await pool.query(
       "UPDATE users SET reset_token = $1 WHERE id = $2",
       [resetToken, userId]
     );
 
-    // send reset link
     const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
 
     res.json({
@@ -150,14 +153,12 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// ⭐ 2️⃣ RESET PASSWORD (Update password)
+// RESET PASSWORD
 router.post("/reset-password", async (req, res) => {
   const { token, newPassword } = req.body;
 
   try {
-    // verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
     const hashed = await bcrypt.hash(newPassword, 10);
 
     const result = await pool.query(
