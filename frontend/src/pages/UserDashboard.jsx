@@ -845,6 +845,23 @@ const UserDashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* Minimal responsive footer */}
+      <footer className="mt-6 border-t border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4">
+          <div
+            className="flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-gray-600"
+            style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}
+          >
+            <div className="mb-2 sm:mb-0">© {new Date().getFullYear()} Vasu Consultancy</div>
+            <div className="flex space-x-4">
+              <a href="/privacy" className="hover:underline">Privacy</a>
+              <a href="/terms" className="hover:underline">Terms</a>
+              <a href="/contact" className="hover:underline">Contact</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
