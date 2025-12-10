@@ -1,26 +1,18 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const sendEmail = async (to, subject, text) => {
+export const sendEmail = async (subject, text) => {
   try {
-    const info = await transporter.sendMail({
-    from: `"Loan Portal" <${process.env.EMAIL_USER}>`,
-    to,
-    subject,
-    text
-  });
+    await resend.emails.send({
+      from: "Loan Portal <noreply@resend.dev>",
+      to: "yourgmail@gmail.com", // ⭐ ALWAYS sends to you
+      subject,
+      text,
+    });
 
-    console.log("📩 Email sent:", info.response);
+    console.log("📩 Email sent via Resend!");
   } catch (err) {
-    console.error("❌ Email error:", err);
+    console.error("❌ Email failed:", err);
   }
 };

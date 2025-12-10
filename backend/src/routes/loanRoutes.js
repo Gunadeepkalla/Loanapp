@@ -61,7 +61,6 @@ router.post("/apply", authMiddleware, async (req, res) => {
 
     // ⭐ Correct dynamic email
     await sendEmail(
-      userEmail,
       "Loan Application Submitted ✅",
       `Your loan application (ID: ${application_id}) has been submitted successfully.`
     );
