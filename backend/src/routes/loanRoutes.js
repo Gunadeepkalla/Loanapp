@@ -46,19 +46,20 @@ router.post("/apply", authMiddleware, async (req, res) => {
   const application_id = `APP-${Date.now()}`;
 
   try {
-    const result = await pool.query(
+    await pool.query(
       `INSERT INTO loans (user_id, loan_type, amount, cibil_score, status, application_id)
-      VALUES ($1, $2, $3, $4, 'pending', $5)
-      RETURNING id, application_id`,
+       VALUES ($1, $2, $3, $4, 'pending', $5)`,
       [userId, loan_type, amount, cibil_score, application_id]
     );
 
-    const userResult = await pool.query(
+    const userEmailResult = await pool.query(
       "SELECT email FROM users WHERE id = $1",
       [userId]
     );
-    const userEmail = userResult.rows[0].email;
 
+    const userEmail = userEmailResult.rows[0].email;
+
+    // ⭐ Correct dynamic email
     await sendEmail(
       userEmail,
       "Loan Application Submitted ✅",
@@ -66,17 +67,15 @@ router.post("/apply", authMiddleware, async (req, res) => {
     );
 
     res.json({
-      msg: "Loan application submitted ✅ Email sent",
-      application_id: application_id,
+      msg: "Loan application submitted & email sent",
+      application_id,
     });
+
   } catch (err) {
     console.log("Loan apply error:", err);
-    res
-      .status(500)
-      .json({ msg: "Loan application failed ❌", error: err.toString() });
+    res.status(500).json({ msg: "Loan application failed ❌" });
   }
 });
-
 /* --------------------------------------------------------------
     2️⃣ SIMPLE LOANS FETCH
 -------------------------------------------------------------- */
