@@ -57,7 +57,7 @@ router.post("/login", async (req, res) => {
     // ⭐ FIX VERIFIED: email included in token (important for email sending)
     const token = jwt.sign(
       { 
-        id: user.id, 
+        id: Number(user.id),
         email: user.email, 
         role: user.role || "user"  // ⭐ prevents null/undefined 
       },
