@@ -9,9 +9,9 @@ import { fileURLToPath } from "url";
 
 const router = express.Router();
 
-/* -----------------------------
-      ⭐ FIX: Absolute path for uploads (Render compatible)
------------------------------- */
+/* --------------------------------------------------------------
+   ⭐ FIX: Ensure absolute uploads path (Render compatible)
+-------------------------------------------------------------- */
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,9 +24,9 @@ if (!fs.existsSync(uploadDir)) {
   console.log("📁 uploads folder created");
 }
 
-/* -----------------------------
-      ⭐ FIX: MULTER STORAGE CONFIG
------------------------------- */
+/* --------------------------------------------------------------
+   ⭐ MULTER STORAGE CONFIG
+-------------------------------------------------------------- */
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
@@ -36,8 +36,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+
 /* --------------------------------------------------------------
-    1️⃣ SIMPLE LOAN APPLY
+   1️⃣ SIMPLE LOAN APPLY
 -------------------------------------------------------------- */
 router.post("/apply", authMiddleware, async (req, res) => {
   const { loan_type, amount, cibil_score } = req.body;
@@ -59,24 +60,26 @@ router.post("/apply", authMiddleware, async (req, res) => {
 
     const userEmail = userEmailResult.rows[0].email;
 
-    // ⭐ Correct dynamic email
     await sendEmail(
-      "Loan Application Submitted ✅",
+      userEmail,
+      "Loan Application Submitted Successfully",
       `Your loan application (ID: ${application_id}) has been submitted successfully.`
     );
 
-    res.json({
+    return res.json({
       msg: "Loan application submitted & email sent",
       application_id,
     });
 
   } catch (err) {
     console.log("Loan apply error:", err);
-    res.status(500).json({ msg: "Loan application failed ❌" });
+    return res.status(500).json({ msg: "Loan application failed ❌" });
   }
 });
+
+
 /* --------------------------------------------------------------
-    2️⃣ SIMPLE LOANS FETCH
+   2️⃣ GET LOGGED-IN USER SIMPLE LOANS
 -------------------------------------------------------------- */
 router.get("/my", authMiddleware, async (req, res) => {
   try {
@@ -87,15 +90,16 @@ router.get("/my", authMiddleware, async (req, res) => {
       [userId]
     );
 
-    res.json(result.rows);
+    return res.json(result.rows);
   } catch (err) {
     console.error("Error fetching user loans:", err.message);
-    res.status(500).json({ msg: "Server error" });
+    return res.status(500).json({ msg: "Server error" });
   }
 });
 
+
 /* --------------------------------------------------------------
-    3️⃣ ADVANCED LOAN APPLICATION (WITH FILE UPLOADS)
+   3️⃣ ADVANCED LOAN APPLICATION (WITH MULTIPLE DOCUMENT UPLOADS)
 -------------------------------------------------------------- */
 router.post(
   "/apply-loan",
@@ -115,7 +119,7 @@ router.post(
       const userId = req.user.id;
       const { loan_type, full_name, phone, address, salary } = req.body;
 
-      // Files - Render safe
+      // Extract uploaded files safely
       const documents = {
         aadhaar: req.files.aadhaar?.[0]?.filename || null,
         pan: req.files.pan?.[0]?.filename || null,
@@ -143,17 +147,19 @@ router.post(
         salary,
         documents.pan,
         documents.aadhaar,
-        JSON.stringify(documents),
+        JSON.stringify(documents), // important
       ];
 
       const result = await pool.query(query, values);
 
+      // Fetch user email
       const userEmailResult = await pool.query(
         "SELECT email FROM users WHERE id = $1",
         [userId]
       );
       const userEmail = userEmailResult.rows[0].email;
 
+      // Send confirmation email
       await sendEmail(
         userEmail,
         "Loan Application Submitted Successfully 📩",
@@ -169,20 +175,22 @@ router.post(
         `
       );
 
-      res.json({
+      return res.json({
         success: true,
         msg: "Loan application submitted successfully & email sent 📩",
         application: result.rows[0],
       });
+
     } catch (err) {
       console.error("Loan Application Error:", err);
-      res.status(500).json({ msg: "Server Error", error: err.toString() });
+      return res.status(500).json({ msg: "Server Error", error: err.toString() });
     }
   }
 );
 
+
 /* --------------------------------------------------------------
-    4️⃣ GET LOGGED-IN USER LOAN APPLICATIONS
+   4️⃣ GET LOGGED-IN USER ADVANCED LOAN APPLICATIONS
 -------------------------------------------------------------- */
 router.get("/my-applications", authMiddleware, async (req, res) => {
   try {
@@ -193,10 +201,15 @@ router.get("/my-applications", authMiddleware, async (req, res) => {
       [userId]
     );
 
-    res.json({ success: true, applications: result.rows });
+    const apps = result.rows.map(app => ({
+      ...app,
+      documents: app.documents ? JSON.parse(app.documents) : {}
+    }));
+
+    return res.json({ success: true, applications: apps });
   } catch (err) {
     console.error("Fetch Loan Applications Error:", err);
-    res.status(500).json({ msg: "Server Error" });
+    return res.status(500).json({ msg: "Server Error" });
   }
 });
 
