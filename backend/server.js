@@ -37,7 +37,7 @@ if (!fs.existsSync(uploadPath)) {
 /* ------------------------------
    ⭐ Serve uploaded files
 --------------------------------*/
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 /* ------------------------------
    ⭐ CORS for local + production
