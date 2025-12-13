@@ -212,5 +212,35 @@ router.get("/my-applications", authMiddleware, async (req, res) => {
     return res.status(500).json({ msg: "Server Error" });
   }
 });
+router.get("/my-all", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const simpleLoans = await pool.query(
+      "SELECT *, 'simple' AS source FROM loans WHERE user_id = $1",
+      [userId]
+    );
+
+    const advancedLoans = await pool.query(
+      "SELECT *, 'advanced' AS source FROM loan_applications WHERE user_id = $1",
+      [userId]
+    );
+
+    const allLoans = [
+      ...simpleLoans.rows,
+      ...advancedLoans.rows
+    ].sort(
+      (a, b) =>
+        new Date(b.created_at || b.applied_on) -
+        new Date(a.created_at || a.applied_on)
+    );
+
+    res.json(allLoans);
+  } catch (err) {
+    console.error("Fetch all loans error:", err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
 
 export default router;
