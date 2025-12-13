@@ -101,7 +101,7 @@ export const authService = {
   // Get user's loan applications (advanced system)
   getUserLoans: async () => {
     try {
-      const response = await api.get('/loans/my-applications');
+      const response = await api.get('/loans/my-all');
       return response.data;
     } catch (error) {
       throw error.response?.data || { msg: 'Failed to fetch loans' };

@@ -41,15 +41,14 @@ const UserDashboard = () => {
         if (isMounted.current) setUser(userData);
         
         // Fetch loan applications
-        let loansData = [];
-        try {
-          const response = await authService.getUserLoans();
-          loansData = response.applications || [];
-        } catch (error) {
-          console.log('Using simple loans API');
-          const simpleLoans = await authService.getSimpleLoans();
-          loansData = simpleLoans || [];
-        }
+       const loansData = await authService.getUserLoans();
+
+if (isMounted.current) {
+  setLoans(loansData);
+  setAllLoans(loansData);
+  calculateStats(loansData);
+}
+
         
         if (isMounted.current) {
           setLoans(loansData);

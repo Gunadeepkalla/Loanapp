@@ -201,10 +201,14 @@ router.get("/my-applications", authMiddleware, async (req, res) => {
       [userId]
     );
 
-    const apps = result.rows.map(app => ({
-      ...app,
-      documents: app.documents ? JSON.parse(app.documents) : {}
-    }));
+const apps = result.rows.map(app => ({
+  ...app,
+  documents:
+    typeof app.documents === "string"
+      ? JSON.parse(app.documents)
+      : app.documents || {}
+}));
+
 
     return res.json({ success: true, applications: apps });
   } catch (err) {
