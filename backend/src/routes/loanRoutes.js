@@ -2,43 +2,14 @@ import express from "express";
 import pool from "../config/db.js";
 import authMiddleware from "../middleware/auth.js";
 import { sendEmail } from "../config/email.js";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
+
+// ✅ Import Cloudinary upload middleware
+import { upload } from "../config/cloudinary.js";
 
 const router = express.Router();
 
 /* --------------------------------------------------------------
-   ⭐ FIX: Ensure absolute uploads path (Render compatible)
--------------------------------------------------------------- */
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const uploadDir = path.join(__dirname, "../../uploads");
-
-// Create uploads folder if missing
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log("📁 uploads folder created");
-}
-
-/* --------------------------------------------------------------
-   ⭐ MULTER STORAGE CONFIG
--------------------------------------------------------------- */
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) =>
-    cb(null, Date.now() + "-" + file.originalname),
-});
-
-const upload = multer({ storage });
-
-
-/* --------------------------------------------------------------
-   1️⃣ SIMPLE LOAN APPLY
+   1️⃣ SIMPLE LOAN APPLY (NO FILES)
 -------------------------------------------------------------- */
 router.post("/apply", authMiddleware, async (req, res) => {
   const { loan_type, amount, cibil_score } = req.body;
@@ -66,17 +37,15 @@ router.post("/apply", authMiddleware, async (req, res) => {
       `Your loan application (ID: ${application_id}) has been submitted successfully.`
     );
 
-    return res.json({
+    res.json({
       msg: "Loan application submitted & email sent",
       application_id,
     });
-
   } catch (err) {
-    console.log("Loan apply error:", err);
-    return res.status(500).json({ msg: "Loan application failed ❌" });
+    console.error("Loan apply error:", err);
+    res.status(500).json({ msg: "Loan application failed ❌" });
   }
 });
-
 
 /* --------------------------------------------------------------
    2️⃣ GET LOGGED-IN USER SIMPLE LOANS
@@ -90,16 +59,15 @@ router.get("/my", authMiddleware, async (req, res) => {
       [userId]
     );
 
-    return res.json(result.rows);
+    res.json(result.rows);
   } catch (err) {
-    console.error("Error fetching user loans:", err.message);
-    return res.status(500).json({ msg: "Server error" });
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
   }
 });
 
-
 /* --------------------------------------------------------------
-   3️⃣ ADVANCED LOAN APPLICATION (WITH MULTIPLE DOCUMENT UPLOADS)
+   3️⃣ ADVANCED LOAN APPLICATION (CLOUDINARY FILE UPLOADS)
 -------------------------------------------------------------- */
 router.post(
   "/apply-loan",
@@ -119,20 +87,20 @@ router.post(
       const userId = req.user.id;
       const { loan_type, full_name, phone, address, salary } = req.body;
 
-      // Extract uploaded files safely
+      // ✅ Store CLOUDINARY URLs (NOT filenames)
       const documents = {
-        aadhaar: req.files.aadhaar?.[0]?.filename || null,
-        pan: req.files.pan?.[0]?.filename || null,
-        salarySlip: req.files.salarySlip?.[0]?.filename || null,
-        rc: req.files.rc?.[0]?.filename || null,
-        property_doc: req.files.property_doc?.[0]?.filename || null,
-        fee_structure: req.files.fee_structure?.[0]?.filename || null,
-        bank_statement: req.files.bank_statement?.[0]?.filename || null,
-        admission_letter: req.files.admission_letter?.[0]?.filename || null,
+        aadhaar: req.files?.aadhaar?.[0]?.path || null,
+        pan: req.files?.pan?.[0]?.path || null,
+        salarySlip: req.files?.salarySlip?.[0]?.path || null,
+        rc: req.files?.rc?.[0]?.path || null,
+        property_doc: req.files?.property_doc?.[0]?.path || null,
+        fee_structure: req.files?.fee_structure?.[0]?.path || null,
+        bank_statement: req.files?.bank_statement?.[0]?.path || null,
+        admission_letter: req.files?.admission_letter?.[0]?.path || null,
       };
 
       const query = `
-        INSERT INTO loan_applications 
+        INSERT INTO loan_applications
         (user_id, loan_type, full_name, phone, address, salary, pan, aadhaar, status, documents)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'Under Review',$9)
         RETURNING *;
@@ -147,7 +115,7 @@ router.post(
         salary,
         documents.pan,
         documents.aadhaar,
-        JSON.stringify(documents), // important
+        JSON.stringify(documents),
       ];
 
       const result = await pool.query(query, values);
@@ -159,35 +127,32 @@ router.post(
       );
       const userEmail = userEmailResult.rows[0].email;
 
-      // Send confirmation email
       await sendEmail(
         userEmail,
         "Loan Application Submitted Successfully 📩",
         `
-        Hello ${full_name},
+Hello ${full_name},
 
-        Your ${loan_type} loan application has been submitted.
-        Status: Under Review
-        Application ID: ${result.rows[0].id}
+Your ${loan_type} loan application has been submitted.
+Status: Under Review
+Application ID: ${result.rows[0].id}
 
-        Regards,
-        Loan Management Team
+Regards,
+Loan Management Team
         `
       );
 
-      return res.json({
+      res.json({
         success: true,
         msg: "Loan application submitted successfully & email sent 📩",
         application: result.rows[0],
       });
-
     } catch (err) {
       console.error("Loan Application Error:", err);
-      return res.status(500).json({ msg: "Server Error", error: err.toString() });
+      res.status(500).json({ msg: "Server Error", error: err.toString() });
     }
   }
 );
-
 
 /* --------------------------------------------------------------
    4️⃣ GET LOGGED-IN USER ADVANCED LOAN APPLICATIONS
@@ -201,21 +166,24 @@ router.get("/my-applications", authMiddleware, async (req, res) => {
       [userId]
     );
 
-const apps = result.rows.map(app => ({
-  ...app,
-  documents:
-    typeof app.documents === "string"
-      ? JSON.parse(app.documents)
-      : app.documents || {}
-}));
+    const apps = result.rows.map((app) => ({
+      ...app,
+      documents:
+        typeof app.documents === "string"
+          ? JSON.parse(app.documents)
+          : app.documents || {},
+    }));
 
-
-    return res.json({ success: true, applications: apps });
+    res.json({ success: true, applications: apps });
   } catch (err) {
-    console.error("Fetch Loan Applications Error:", err);
-    return res.status(500).json({ msg: "Server Error" });
+    console.error(err);
+    res.status(500).json({ msg: "Server Error" });
   }
 });
+
+/* --------------------------------------------------------------
+   5️⃣ GET ALL USER LOANS (SIMPLE + ADVANCED)
+-------------------------------------------------------------- */
 router.get("/my-all", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -230,10 +198,7 @@ router.get("/my-all", authMiddleware, async (req, res) => {
       [userId]
     );
 
-    const allLoans = [
-      ...simpleLoans.rows,
-      ...advancedLoans.rows
-    ].sort(
+    const allLoans = [...simpleLoans.rows, ...advancedLoans.rows].sort(
       (a, b) =>
         new Date(b.created_at || b.applied_on) -
         new Date(a.created_at || a.applied_on)
@@ -241,10 +206,9 @@ router.get("/my-all", authMiddleware, async (req, res) => {
 
     res.json(allLoans);
   } catch (err) {
-    console.error("Fetch all loans error:", err);
+    console.error(err);
     res.status(500).json({ msg: "Server error" });
   }
 });
-
 
 export default router;

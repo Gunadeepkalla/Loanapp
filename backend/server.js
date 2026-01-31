@@ -4,45 +4,32 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import path from "path";
-import fs from "fs";                     // ⭐ Added for file upload fix
 import { fileURLToPath } from "url";
+
 import pool from "./src/config/db.js";
 
+// Routes
 import authRoutes from "./src/routes/authRoutes.js";
-import auth from "./src/middleware/auth.js";
 import loanRoutes from "./src/routes/loanRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
-import adminAuth from "./src/middleware/adminAuth.js";
+
+// Middleware
+import auth from "./src/middleware/auth.js";
+
+// ✅ Initialize Cloudinary ONCE
+import "./src/config/cloudinary.js";
+import multer from "multer";
 
 const app = express();
 
 /* ------------------------------
-   ⭐ Absolute path setup (Render required)
+   Absolute path setup (ESM)
 --------------------------------*/
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /* ------------------------------
-   ⭐ FIX: Auto-create uploads folder on Render
---------------------------------*/
-const uploadPath = path.join(__dirname, "uploads");
-
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-  console.log("📁 uploads folder created on Render");
-} else {
-  console.log("📁 uploads folder already exists");
-}
-
-/* ------------------------------
-   ⭐ Serve uploaded files
---------------------------------*/
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-
-
-/* ------------------------------
-   ⭐ CORS for local + production
+   CORS configuration
 --------------------------------*/
 app.use(
   cors({
@@ -53,60 +40,82 @@ app.use(
 );
 
 /* ------------------------------
-   ⭐ JSON + URL decoder limits
+   Body parsers
 --------------------------------*/
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
 /* ------------------------------
-   ⭐ API ROUTES
+   API Routes
 --------------------------------*/
 app.use("/api/auth", authRoutes);
 app.use("/api/loans", loanRoutes);
 app.use("/api/admin", adminRoutes);
+app.use((err, req, res, next) => {
+  // Multer-specific errors
+  if (err instanceof multer.MulterError) {
+    console.error("MULTER ERROR:", err);
 
+    return res.status(400).json({
+      success: false,
+      type: "MULTER_ERROR",
+      message: err.message,
+      field: err.field,
+    });
+  }
+
+  // Other errors
+  if (err) {
+    console.error("SERVER ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Internal Server Error",
+    });
+  }
+
+  next();
+});
 /* ------------------------------
-   ⭐ Protected test route
+   Protected test route
 --------------------------------*/
 app.get("/protected", auth, (req, res) => {
-  res.json({ msg: "Protected route access ✅", user: req.user });
+  res.json({
+    message: "Protected route access ✅",
+    user: req.user,
+  });
 });
 
 /* ------------------------------
-   ⭐ Admin test route
---------------------------------*/
-app.get("/api/admin/test", (req, res) => {
-  res.send("Admin test route working ✅");
-});
-
-/* ------------------------------
-   ⭐ Root endpoint
+   Root route
 --------------------------------*/
 app.get("/", (req, res) => {
-  res.send("Loan API working 🟢");
+  res.send("Loan API running with Cloudinary 🟢");
 });
 
 /* ------------------------------
-   ⭐ DB test route
+   Database health check
 --------------------------------*/
 app.get("/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
     res.json({
-      msg: "DB Connected 🟢",
+      status: "DB Connected 🟢",
       time: result.rows[0],
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ msg: "DB Connection Failed ❌" });
+    res.status(500).json({
+      status: "DB Connection Failed ❌",
+    });
   }
 });
 
 /* ------------------------------
-   ⭐ Correct port handling for Render
+   Server start (Render safe)
 --------------------------------*/
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on PORT: ${PORT}`);
+  console.log(`🚀 Server running on PORT ${PORT}`);
 });
